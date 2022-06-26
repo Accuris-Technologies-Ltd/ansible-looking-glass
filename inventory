@@ -1,0 +1,7 @@
+[looking_glass]
+lg.fmt.example.com looking_glass_ipv4="192.0.2.2" looking_glass_ipv6="2001:db8::2" looking_glass_location="Fremont, California, USA"
+
+[looking_glass:vars]
+site_name="Example Corporation"
+letsencrypt_email="noc@example.com"
+test_ratelimit="5"

@@ -1,0 +1,38 @@
+<?php
+/**
+ * LookingGlass - User friendly PHP Looking Glass
+ *
+ * @package     LookingGlass
+ * @author      Nick Adams <nick@iamtelephone.com>
+ * @copyright   2015 Nick Adams.
+ * @link        http://iamtelephone.com
+ * @license     http://opensource.org/licenses/MIT MIT License
+ * @version     1.3.0
+ */
+
+// IPv4 address
+$ipv4 = '{{ looking_glass_ipv4 }}';
+// IPv6 address (can be blank)
+{% if looking_glass_ipv6 is defined %}
+$ipv6 = '{{ looking_glass_ipv6 }}';
+{% else %}
+$ipv6 = '';
+{% endif %}
+// Rate limit
+{% if test_ratelimit is defined %}
+$rateLimit = (int) '{{ test_ratelimit }}';
+{% else %}
+$rateLimit = (int) '0';
+{% endif %}
+// Site name (header)
+$siteName = '{{ site_name }} - {{ looking_glass_location }}';
+// Site URL
+$siteUrl = 'https://{{ inventory_hostname }}';
+// Server location
+$serverLocation = '{{ looking_glass_location }}';
+// Test files
+$testFiles = array();
+$testFiles[] = '100MB';
+$testFiles[] = '1000MB';
+// Theme
+$theme = 'cerulean';

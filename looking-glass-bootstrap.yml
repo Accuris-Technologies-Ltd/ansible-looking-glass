@@ -1,0 +1,6 @@
+---
+- name: Setup looking glass nodes
+  become: true
+  hosts: looking_glass
+  roles:
+    - looking-glass
