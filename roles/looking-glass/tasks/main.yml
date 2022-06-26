@@ -1,0 +1,86 @@
+---
+- name: Install pre-requisites
+  apt:
+    name: "{{ item }}"
+    update_cache: yes
+    install_recommends: false
+  with_items:
+    - nginx
+    - php7.4-fpm
+    - php7.4-sqlite3
+    - python3-certbot
+    - python3-certbot-nginx
+    - host
+    - mtr
+    - iputils-ping
+    - traceroute
+    - sqlite3
+
+- name: make LookingGlass folder
+  file:
+    path: /var/www/html/LookingGlass
+    state: directory
+
+- name: Prepare 100MB static file
+  command: dd if=/dev/urandom of=/var/www/html/LookingGlass/100MB.test bs=1M count=100
+  args:
+    creates: /var/www/html/LookingGlass/100MB.test
+
+- name: Prepare 1000MB static file
+  command: dd if=/dev/urandom of=/var/www/html/LookingGlass/1000MB.test bs=1M count=1000
+  args:
+    creates: /var/www/html/LookingGlass/1000MB.test
+
+- name: Copy looking glass files
+  copy:
+    src: files/looking-glass/
+    dest: /var/www/html/LookingGlass/
+
+- name: change owner of subdirectory
+  file:
+    path: /var/www/html/LookingGlass/LookingGlass
+    owner: www-data
+    group: www-data
+
+- name: Ensure www-data owns the ratelimiter db
+  file:
+    path: /var/www/html/LookingGlass/LookingGlass/ratelimit.db
+    owner: www-data
+    group: www-data
+  
+- name: Write looking glass config
+  template:
+    src: lg-config.php.j2
+    dest: /var/www/html/LookingGlass/LookingGlass/Config.php
+
+- name: Remove default nginx config file
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Generate SSL certificate.
+  shell: "certbot certonly --nginx --noninteractive --agree-tos --email {{ letsencrypt_email }} -d {{ inventory_hostname }}"
+
+- name: Add renew hook to auto-reload nginx upon cert renewal
+  lineinfile:
+    state: present
+    dest: /etc/letsencrypt/renewal/{{ inventory_hostname }}.conf
+    regexp: '^renew_hook = systemctl reload nginx'
+    line: 'renew_hook = systemctl reload nginx'
+
+- name: Write NGINX config
+  template:
+    src: lookingglass-http.nginx.conf.j2
+    dest: /etc/nginx/sites-enabled/lookingglass-http.nginx.conf
+
+- name: Make sure nginx is running and enabled
+  systemd:
+    name: nginx
+    state: restarted
+    enabled: yes
+
+- name: Make sure php7.4-fpm is running and enabled
+  systemd:
+    name: php7.4-fpm
+    state: restarted
+    enabled: yes
